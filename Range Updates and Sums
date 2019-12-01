@@ -1,0 +1,159 @@
+#include <bits/stdc++.h>
+using namespace std;
+ 
+#define int long long 
+#define pb push_back
+#define S second
+#define F first
+#define f(i,n) for(int i=0;i<n;i++)
+#define fast ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0)
+#define vi vector<int>
+#define pii pair<int,int>
+ 
+const int N = 2e5+10;
+ 
+vector<int> seg(4*N),lazy1(4*N),lazy2(4*N),a(N);
+ 
+void build(int node,int ss,int se)
+{
+    if(ss == se)
+    {
+      cin >> seg[node]; return;   
+    }
+    
+    int mid = (ss+se)/2;
+    
+    build(node*2+1,ss,mid);
+    build(node*2+2,mid+1,se);
+    
+    seg[node] = seg[node*2+1]  + seg[node*2+2]; 
+} 
+ 
+void push(int node,int ss,int se)
+{
+    
+   if(lazy1[node] == 0)
+   {
+      if(ss != se) lazy2[node*2+1]+=lazy2[node],lazy2[node*2+2]+=lazy2[node];
+      seg[node]+= lazy2[node]*(se-ss+1); 
+      lazy2[node] = 0; 
+      return; 
+   }
+   
+   if(ss != se) lazy2[node*2 + 1] = lazy2[node*2 + 2] = 0;
+    
+   if(ss != se) lazy1[node*2+1] = lazy1[node*2+2] = lazy1[node];
+   seg[node] = lazy1[node]*(se-ss+1);
+   lazy1[node] = 0;
+   
+   if(ss != se) lazy2[node*2+1]+=lazy2[node],lazy2[node*2+2]+=lazy2[node];
+   seg[node]+= lazy2[node]*(se-ss+1); 
+   lazy2[node] = 0;          
+   
+}
+ 
+void update1(int node,int ss,int se,int l,int r,int val)
+{
+    if(ss > se) return;
+    
+    push(node,ss,se);
+    
+    if(ss > r || l > se) return;
+    
+    if(l <= ss && se <= r)
+    {
+       lazy2[node] = 0;
+       lazy1[node] = val;
+       push(node,ss,se);
+       return;
+    }
+    
+    int mid = (ss+se)/2;
+    
+    update1(node*2+1,ss,mid,l,r,val);
+    update1(node*2+2,mid+1,se,l,r,val);
+    
+    seg[node] = seg[node*2+1] + seg[node*2+2];
+}
+ 
+void update2(int node,int ss,int se,int l,int r,int val)
+{
+    if(ss > se) return;
+    
+    push(node,ss,se);
+    
+    if(ss > r || l > se) return;
+    
+    if(l <= ss && se <= r)
+    {  
+       lazy2[node]+=val;
+       push(node,ss,se);
+       return;
+    }
+    
+    int mid = (ss+se)/2;
+    
+    update2(node*2+1,ss,mid,l,r,val);
+    update2(node*2+2,mid+1,se,l,r,val);
+    
+    seg[node] = seg[node*2+1] + seg[node*2+2];
+}
+ 
+int query(int node,int ss,int se,int l,int r)
+{
+   if(ss > se) return 0;
+    
+   push(node,ss,se); 
+    
+   if(l > se ||  r < ss) return 0;
+    
+   if(l <= ss && se <= r) return seg[node];
+    
+   int mid = (ss+se)/2;
+   
+   return query(node*2+1,ss,mid,l,r) + query(node*2+2,mid+1,se,l,r);    
+}
+ 
+void solve()
+{
+  int n,q,a,b,x,type;
+    
+  cin >> n >> q;
+    
+  build(0,0,n-1);
+    
+    
+  while(q--)
+  {
+      cin >> type;
+      
+      if(type == 1)
+      {
+          cin >> a >> b >> x;
+          update2(0,0,n-1,a-1,b-1,x);
+      }
+      else if(type == 2)
+      {
+          cin >> a >> b >> x;
+          update1(0,0,n-1,a-1,b-1,x);
+      }
+      else 
+      {
+          cin >> a >> b;
+          cout << query(0,0,n-1,a-1,b-1) << '\n';
+      }
+  }
+}
+ 
+signed main()
+{
+    fast;
+    
+    int t = 1;
+    
+//    cin >> t;
+    
+    while(t--)
+        
+    solve();
+}
