@@ -1,0 +1,96 @@
+//g++  5.4.0
+ 
+#include<bits/stdc++.h>
+using namespace std;
+ 
+#define ff first
+#define ss second
+#define int long long
+#define pb push_back
+#define pii pair< int,int >
+#define fast ios::sync_with_stdio(0) , cin.tie(0) , cout.tie(0) ;
+#define L(p) 2*p+1
+#define R(p) 2*p+2
+ 
+const int nax = 2e5+10;
+int jt[4*nax] , lz[4*nax];
+ 
+int fun(int a,int b)
+{
+    return a+b; // whatever u wish
+}
+void build(int l , int h , int p )
+{
+ 
+	if(l == h)
+	{
+		cin >> jt[p];
+        lz[p] = jt[p];
+		return;
+	}
+	int m = (l+h)>>1;
+	build(l , m , L(p));
+	build(m+1 , h , R(p));
+	jt[p] = fun(jt[L(p)],jt[R(p)]);
+	return;
+}
+ 
+void push( int l,int h , int p )
+{
+    lz[ L(p) ] += lz[p];
+    lz[ R(p) ] += lz[p];
+    jt[ L(p) ] += lz[p];
+    jt[ R(p) ] += lz[p];
+    lz[p] = 0;
+    return ;
+}
+void update(int l ,int h , int p, int ql, int qh,int v)
+{
+	if(l > qh || h < ql)
+		return;
+	else if(l >= ql && h <= qh)
+	{
+		jt[p] += v;
+        lz[p] += v;
+		return;
+	}
+    if( lz[p] ) push( l,h,p );
+	int m = (l + h )>> 1;
+	update( l , m , L(p) ,ql ,qh,v);
+	update(m+1 , h , R(p) , ql ,qh,v);
+	jt[p] = fun(jt[L(p)],jt[R(p)]);
+	return;
+}
+ 
+int query(int l,int h, int p, int q)
+{
+	if(l == h) return jt[p] ;
+    if( lz[p] ) push( l , h , p );
+	int m = (l + h )>> 1;
+    if( q <= m ) return query( l , m , L(p) ,q);
+	return  query(m+1 , h , R(p) , q);
+}
+signed main()
+{
+    fast;
+    int n , q;
+    cin >> n >> q;
+    build( 1,n,0 );
+    while( q-- )
+    {
+        int t;
+        cin >> t;
+        if( t == 1 )
+        {
+            int a , b , u;
+            cin >> a >> b >> u;
+            update( 1,n,0,a,b,u);
+        }
+        else
+        {
+            int p;
+            cin >> p;
+            cout << query( 1,n,0,p) << "\n";
+        }
+    }
+}
