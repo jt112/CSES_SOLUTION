@@ -1,0 +1,81 @@
+#include<bits/stdc++.h>
+using namespace std;
+ 
+#define INF LONG_LONG_MAX
+#define MINF LONG_LONG_MIN
+#define bp __builtin_popcountll
+#define ll int
+#define ld long double
+#define pb push_back
+#define ff first
+#define ss second
+#define pii pair<ll,ll>
+#define precision(x,d) cout<<fixed<<setprecision(d)<<x
+#define minQueue priority_queue<pii,vector<pii>,greater<pii> > 
+#define maxQueue priority_queue<pii> 
+#define FAST ios_base::sync_with_stdio(false),cin.tie(0),cout.tie(0);srand(time(NULL))
+#define L(p) 2*p+1
+#define R(p) 2*p+2
+ 
+const ll N = 2e5+5;
+ 
+ll jt[4*N];
+ 
+ll fun(ll a,ll b)
+{
+    return max(a,b); // whatever u wish
+}
+void build(ll l , ll h , ll p )
+{
+	if(l == h)
+	{
+		cin >> jt[p];
+		return;
+	}
+	ll m = (l+h)>>1;
+	build(l , m , L(p));
+	build(m+1 , h , R(p));
+	jt[p] = fun(jt[L(p)],jt[R(p)]);
+	return;
+}
+ 
+void update(ll l ,ll h , ll p, ll ql, ll qh,ll v)
+{
+	if(l > qh || h < ql)
+		return;
+	else if(l >= ql && h <= qh)
+	{
+		jt[p] -= v;
+		return;
+	}
+	ll m = (l + h )>> 1;
+	update( l , m , L(p) ,ql ,qh,v);
+	update(m+1 , h , R(p) , ql ,qh,v);
+	jt[p] = fun(jt[L(p)],jt[R(p)]);
+	return;
+}
+ 
+ll query(ll l,ll h, ll p , ll x)
+{ 
+	if( jt[p] < x ) return 0;
+    if( l == h ) return l;
+    ll m = (l+h)>>1;
+    if( jt[L(p)] >= x ) return query(l,m,L(p),x);
+    return query(m+1,h,R(p),x);
+}
+ 
+int main()
+{
+    FAST;
+    ll n,m;
+    cin>>n>>m;
+    build(1,n,0);
+    while(m--)
+    {
+        ll x;
+        cin>>x;
+        ll p = query(1,n,0,x);
+        cout << p  << " " ;
+        if(p) update(1,n,0,p,p,x);
+    }
+}
