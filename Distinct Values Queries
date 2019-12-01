@@ -1,0 +1,87 @@
+//g++  5.4.0
+// Persistent Segment Tree
+#include<bits/stdc++.h>
+using namespace std;
+ 
+#define ff first
+#define ss second
+#define pb push_back
+#define pii pair< int,int >
+#define fast ios::sync_with_stdio(0) , cin.tie(0) , cout.tie(0) ;
+#define L(p) 2*p+1
+#define R(p) 2*p+2
+ 
+const int nax = 2e5+10;
+int lc[22*nax] , rc[22*nax] , root[nax] , st[22*nax] , idx1[nax] , idx2[nax];
+int cnt = 0;
+map<int,int> mpp;
+pii lst[nax];
+ 
+int build(int l,int h,int p)
+{
+    int node = ++cnt;
+    if( l==h ) return node;
+    int m = (l+h)>>1;
+    lc[node] = build(l,m,L(p));
+    rc[node] = build(m+1,h,R(p));
+    return node;
+}
+int update(int onode , int l,int h ,int p)
+{
+    int node = ++cnt;
+    if( l==h )
+    {
+        st[node] = st[onode] + 1;
+        return node;
+    }
+    int m = (l+h)>>1;
+    lc[node] = lc[onode];
+    rc[node] = rc[onode];
+    if( p <= m ) lc[node] = update( lc[onode] , l,m, p );
+    else           rc[node] = update( rc[onode] , m+1 , h , p );
+    st[node] = st[lc[node]] + st[rc[node]];
+    return node;
+}
+ 
+int query( int onode , int l, int h, int ql, int qh )
+{
+    if( ql > h || qh < l ) return 0;
+    else if( ql <= l && qh >= h ) return st[onode];
+    int m = (l+h)>>1;
+    int p1 = query( lc[onode] , l,m,ql,qh );
+    int p2 = query( rc[onode] , m+1, h,ql,qh );
+    return p1 + p2;
+}
+signed main()
+{
+    fast;
+    int n , m;
+    cin >> n >> m;
+    for(int i=1 ; i<=n ; i++ )
+    {
+        lst[i].ss = i;
+        int x;
+        cin >> x;
+        if( mpp.find(x) != mpp.end())
+            lst[i].ff = mpp[x];
+        else
+            lst[i].ff = 0;
+        mpp[x] = i;
+    }
+    sort( lst+1 , lst+n+1 );
+    for(int i=1 ; i<=n ; i++ )
+        idx1[lst[i].ff] = i;
+    idx2[0] = idx1[0];
+    for(int i=1 ; i<=n ; i++ )
+        idx2[i] = max( idx1[i-1] , idx2[i-1] );
+    
+    root[0] = build( 1,n,0 );
+    for(int i=1 ; i<=n ; i++ )
+        root[i] = update( root[i-1] , 1, n, lst[i].ss );
+    while( m-- )
+    {
+        int l ,r;
+        cin >> l >> r;
+        cout << query( root[ idx2[l] ] , 1 , n , l , r ) << "\n"; 
+    }
+}
