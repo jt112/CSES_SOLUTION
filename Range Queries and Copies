@@ -1,0 +1,95 @@
+//g++  5.4.0
+// Persistent Segment Tree
+#include<bits/stdc++.h>
+using namespace std;
+ 
+#define int long long
+#define ff first
+#define ss second
+#define pb push_back
+#define pii pair< int,int >
+#define fast ios::sync_with_stdio(0) , cin.tie(0) , cout.tie(0) ;
+#define L(p) 2*p+1
+#define R(p) 2*p+2
+ 
+const int nax = 2e5+10;
+int lc[22*nax] , rc[22*nax] , root[nax] , st[22*nax] , a[nax];
+int cnt = 0 , k=1 ;
+ 
+int fun(int a,int b)
+{
+    return a+b; //whatever you want
+}
+int build(int l,int h,int p)
+{
+    int node = cnt++;
+    if( l==h )
+    {
+        st[node] = a[l];
+        return node;
+    }
+    int m = (l+h)>>1;
+    lc[node] = build(l,m,L(p));
+    rc[node] = build(m+1,h,R(p));
+    st[node] = fun( st[lc[node]] , st[rc[node]] );
+    return node;
+}
+int update(int onode, int l,int h ,int p,int v)
+{
+    int node = cnt++;
+    if( l==h )
+    {
+        st[node] = v;
+        return node;
+    }
+    int m = (l+h)>>1;
+    lc[node] = lc[onode];
+    rc[node] = rc[onode];
+    if( p <= m )   lc[node] = update( lc[onode] , l , m, p, v );
+    else           rc[node] = update( rc[onode] , m+1 , h , p,v );
+    st[node] = fun(st[lc[node]], st[rc[node]]);
+    return node;
+}
+ 
+int query( int onode , int l, int h, int ql, int qh )
+{
+    if( ql > h || qh < l ) return 0;
+    else if( ql <= l && qh >= h ) return st[onode];
+    int m = (l+h)>>1;
+    int p1 = query( lc[onode] , l,m,ql,qh );
+    int p2 = query( rc[onode] , m+1, h,ql,qh );
+    return fun(p1, p2);
+}
+signed main()
+{
+    fast;
+    int n , m;
+    cin >> n >> m;
+    for(int i=1 ; i<=n ; i++ ) cin>>a[i];
+    root[1] = build( 1,n,0 );
+    
+    for(int i=1 ; i<=m ; i++ )
+    {
+        int t;
+        cin >> t;
+        if( t==1 ) // update
+        {
+            int pos , num , val;
+            cin >> num >> pos >> val;
+            root[num] = update( root[num] , 1, n, pos, val );
+        }
+        else if( t==2 ) //query
+        {
+            int num , l, h;
+            cin >> num >> l >> h;
+            cout << query( root[num] , 1, n, l, h) << "\n";
+        }
+        else
+        {
+            int x;
+            cin >> x;
+            k++;
+            root[k] = root[x];
+        }
+    }
+}
